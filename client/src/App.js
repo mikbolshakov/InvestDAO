@@ -58,8 +58,8 @@ function App() {
           </a>
           <button onClick={handleShowWallet}>Show Wallet!</button>
           <button onClick={handleDisconnect}>Disconnect</button>
-          <p>cvrfvd price: {!btc ? "Loading..." : btc.toFixed(2)}</p>
-          <p>vsdfvds price: {!eth ? "Loading..." : eth.toFixed(2)}</p>
+          <p>Bitcoin price: {!btc ? "Loading..." : btc.toFixed(2)}</p>
+          <p>Ethereum price: {!eth ? "Loading..." : eth.toFixed(2)}</p>
         </>
       )}
     </div>
