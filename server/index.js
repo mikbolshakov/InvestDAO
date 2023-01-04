@@ -1,7 +1,8 @@
 const express = require('express');
-const {connectToMoralis} = require("./Moralis.js")
-const {getCurrentEthPrice} = require("./priceEth.js")
-const {getCurrentBtcPrice} = require("./priceWBtc.js")
+const {connectToMoralis} = require("./Prices/Moralis.js")
+const {getCurrentEthPrice} = require("./Prices/priceEth.js")
+const {getCurrentBtcPrice} = require("./Prices/priceWBtc.js")
+const {registerValidation} = require("./validations.js")
 
 const PORT = 3001;
 const app = express();
@@ -12,6 +13,8 @@ app.get("/api", async (req, res) => {
   const BtcPrice = await getCurrentBtcPrice(); 
   res.json({message: [BtcPrice, ethPrice]});
 })
+
+app.post('/auth/register', registerValidation, UserController.register);
 
 async function startApp() {
     try {
