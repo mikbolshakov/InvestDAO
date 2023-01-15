@@ -6,93 +6,115 @@ import { ethers } from "ethers";
 import axios from "axios";
 
 const customNodeOptions = {
-  rpcUrl: `https://goerli.infura.io/v3/${process.env.RPCURL}`,
+  rpcUrl: `https://goerli.infura.io/v3/21fb68f7d77b487187658e349000c2e7`,
   chainId: 5,
 };
 
-const magic = new Magic("pk_live_84BA7F7992259553", {
+const magic = new Magic("pk_live_EC3A353BCCF9860E", {
   network: customNodeOptions,
   extensions: [new ConnectExtension()],
 });
 
-const magicAuth = new Magic("pk_live_17B8AADB8167BF62");
+const magicAuth = new Magic("pk_live_CCFD8E3A55EED8B8");
 
 /* FUNCTION */
 function App() {
   const [isLogged, setIsLogged] = React.useState(false);
   const [isWantToLogin, setIsWantToLogin] = React.useState(true);
-  const [takenAccount, setTakenAccount] = React.useState(false);
-  // const [eth, setEth] = React.useState(null);
-  // const [btc, setBtc] = React.useState(null);
+  const [eth, setEth] = React.useState(null);
+  const [btc, setBtc] = React.useState(null);
+  const [account, setAccount] = React.useState(null);
 
   /* PRICES */
-  // React.useEffect(() => {
-  //   fetch("/api")
-  //     .then((response) => response.json())
-  //     .then((response) => setEth(response.message[1]));
-  // }, []);
-
-  // React.useEffect(() => {
-  //   fetch("/api")
-  //     .then((response) => response.json())
-  //     .then((response) => setBtc(response.message[0]));
-  // }, []);
+  React.useEffect(() => {
+    const btcPrice = async () => {
+      try {
+        const response = await axios.get("http://localhost:3005/api");
+        setBtc(response.data.message[0]);
+        setEth(response.data.message[1]);
+      } catch (error) {
+        console.error(error.message);
+      }
+    }
+    btcPrice();
+  }, []);
 
   /* BUTTONS */
-  // const [users, setUsers] = React.useState([]);
-  // const getUsers = () => {
-  //   axios.get("http://localhost:3005/auth/all").then((response) => {
-  //     setUsers(response.data);
-  //   });
-  // };
+  // LOGIN
+  const [logging, setLogging] = React.useState(() => {
+    return {
+      email: "",
+    };
+  });
+
+  const changeInputLogin = (event) => {
+    event.persist();
+    setLogging((prev) => {
+      return {
+        ...prev,
+        [event.target.name]: event.target.value,
+      };
+    });
+  };
 
   const handleLogin = async (event) => {
     event.preventDefault();
-    const email = new FormData(event.target).get("email");
-    if (email) {
-      await magic.auth.loginWithEmailOTP({ email });
-    }
-      axios
+    axios
       .post("http://localhost:3005/auth/login", {
-        email: register.email,
-        password: register.password,
+        email: logging.email,
       })
-      .then((res) => {
+      .then(async (res) => {
         if (res) {
-          setIsLogged(true);
+          console.log("ответ от БД ок");
+          const email = new FormData(event.target).get("email");
+          if (email) {
+            await magic.auth.loginWithEmailOTP({ email });
+          }
+          if (magicAuth.user.isLoggedIn()) {
+            setIsLogged(true);
+          }
         } else {
-          alert("There is already a user with this email");
+          alert("не получили ответ от БД");
         }
       })
-      .catch(() => {
-        alert("An error occurred on the server");
+      .catch((res) => {
+        alert("Пользователь не зарегестрирован");
       });
   };
 
-  const takeAccount = async () => {
-    const provider = new ethers.providers.Web3Provider(magic.rpcProvider);
-    provider.listAccounts().then((accounts) => console.log(accounts[0]));
-
-    setTakenAccount(true);
-  };
-
-  const showWallet = async () => {
-    magic.connect.showWallet();
-  };
-
-  const logoutAccount = async () => {
-    magic.connect.disconnect();
-    setTakenAccount(false);
-  };
-
-  const loggingOut = async () => {
-    await magicAuth.user.logout();
-    setIsLogged(false);
-    setIsWantToLogin(true);
-  };
-
-  const signUp = () => {
+  const handleRegistration = () => {
     setIsWantToLogin(false);
+  };
+
+  // WALLET
+  const takeWallet = () => {
+    const provider = new ethers.providers.Web3Provider(magic.rpcProvider);
+    provider.listAccounts().then((accounts) => {
+      setAccount(accounts?.[0])
+    });
+  };
+
+  const showWallet = () => {
+    magic.connect.showWallet().catch((e) => {
+      console.log(e);
+    });
+  };
+
+  const logoutWallet = async () => {
+    await magic.connect.disconnect().catch((e) => {
+      console.log(e);
+    });
+    setAccount(null);
+  };
+
+  // LOGOUT
+  const loggingOutFromApp = () => {
+    if (magicAuth.user.logout()) {
+      setIsLogged(false);
+      setIsWantToLogin(true);
+    } else {
+      console.log("не работает логаут");
+    }
   };
 
   // ФОРМА РЕГИСТРАЦИИИИИИИИИИИИИИИИИИИИИИИИИИ
@@ -102,11 +124,10 @@ function App() {
       name: "",
       occupation: "",
       email: "",
-      password: "",
     };
   });
 
-  const changeInputRegister = (event) => {
+  const changeInputRegistration = (event) => {
     event.persist();
     setRegister((prev) => {
       return {
@@ -116,22 +137,24 @@ function App() {
     });
   };
 
-  const submitChackin = async (event) => {
+  const handleRegistrationToDB = async (event) => {
     event.preventDefault();
-    const email = new FormData(event.target).get("email");
-    if (email) {
-      await magic.auth.loginWithEmailOTP({ email });
-    }
     axios
       .post("http://localhost:3005/auth/register", {
         name: register.name,
         occupation: register.occupation,
         email: register.email,
-        password: register.password,
       })
-      .then((res) => {
+      .then(async (res) => {
         if (res) {
-          setIsLogged(true);
+          console.log("регистрация в БД ок");
+          const email = new FormData(event.target).get("email");
+          if (email) {
+            await magic.auth.loginWithEmailOTP({ email });
+          }
+          if (magicAuth.user.isLoggedIn()) {
+            setIsLogged(true);
+          }
         } else {
           alert("There is already a user with this email");
         }
@@ -143,22 +166,23 @@ function App() {
 
   return (
     <div className="main">
+      <p>Bitcoin price: {!btc ? "loading..." : btc.toFixed(2)}</p>
+      <p>Ethereum price: {!eth ? "loading..." : eth.toFixed(2)}</p>
       {isLogged ? (
         <>
           <a href="https://goerlifaucet.com/" target="_blank" rel="noreferrer">
             Get some Ether
           </a>
-          {/* <p>Bitcoin price: {!btc ? "Loading..." : btc.toFixed(2)}</p>
-          <p>Ethereum price: {!eth ? "Loading..." : eth.toFixed(2)}</p> */}
-          {!takenAccount ? (
-            <button onClick={takeAccount}>Get wallet</button>
-          ) : (
+          {!account && (
+            <button onClick={takeWallet}>Get wallet</button>
+          )}
+          {account && (
             <>
               <button onClick={showWallet}>Show Wallet!</button>
-              <button onClick={logoutAccount}>Disconnect</button>
+              <button onClick={logoutWallet}>Disconnect</button>
             </>
           )}
-          <button onClick={loggingOut}>Log out from App</button>
+          <button onClick={loggingOutFromApp}>Log out from App</button>
         </>
       ) : (
         <>
@@ -170,19 +194,21 @@ function App() {
                   <input
                     type="email"
                     name="email"
+                    value={logging.email}
+                    onChange={changeInputLogin}
                     required="required"
                     placeholder="Enter your email"
                   />
                   <input type="submit" />
                 </form>
-                <button onClick={signUp}>Sign up</button>
+                <button onClick={handleRegistration}>Sign up</button>
               </div>
             </>
           ) : (
             <>
               <div className="form">
                 <h2>Register user:</h2>
-                <form onSubmit={submitChackin}>
+                <form onSubmit={handleRegistrationToDB}>
                   <p>
                     Name:{" "}
                     <input
@@ -190,7 +216,7 @@ function App() {
                       id="name"
                       name="name"
                       value={register.name}
-                      onChange={changeInputRegister}
+                      onChange={changeInputRegistration}
                     />
                   </p>
                   <p>
@@ -200,7 +226,7 @@ function App() {
                       id="occupation"
                       name="occupation"
                       value={register.occupation}
-                      onChange={changeInputRegister}
+                      onChange={changeInputRegistration}
                     />
                   </p>
                   <p>
@@ -210,17 +236,7 @@ function App() {
                       id="email"
                       name="email"
                       value={register.email}
-                      onChange={changeInputRegister}
-                    />
-                  </p>
-                  <p>
-                    Password:{" "}
-                    <input
-                      type="password"
-                      id="password"
-                      name="password"
-                      value={register.password}
-                      onChange={changeInputRegister}
+                      onChange={changeInputRegistration}
                     />
                   </p>
                   <input type="submit" />

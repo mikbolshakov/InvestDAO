@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+// https://goerli.etherscan.io/address/0xC523272107420Fd55915B69d5E3FcDbBF133A4c8#writeContract
+
 contract Staking {
     IERC20 public token;
     uint public rewardRatePerMinute = 1;
@@ -10,7 +12,7 @@ contract Staking {
     mapping(address => uint) public stakingAmount; // address => staking amount of this address
     mapping(address => uint) public lockTimeInMinutes; // address => number of minutes in staking
     mapping(address => uint) public endTimeOfStaking; // address => end time of staking
-    mapping(address => uint) public rewardPerMinute; // address => reward amount in one minute
+    mapping(address => uint) public rewardAmountPerMinute; // address => reward amount in one minute
 
     event NewDepositor(address sender, uint amount, uint startsAt, uint endsAt);
 
@@ -25,7 +27,7 @@ contract Staking {
         lockTimeInMinutes[msg.sender] = _lockTimeInMinutes;
 
         endTimeOfStaking[msg.sender] = block.timestamp + _lockTimeInMinutes * 60;
-        rewardPerMinute[msg.sender] = _amount * rewardRatePerMinute / 100;
+        rewardAmountPerMinute[msg.sender] = _amount * rewardRatePerMinute / 100;
 
         token.transferFrom(msg.sender, address(this), _amount); // need approve
 
@@ -35,10 +37,10 @@ contract Staking {
     function pullOutOfStaking() public {
         require(block.timestamp >= endTimeOfStaking[msg.sender], "Staking time is not over");
 
-        uint pullOut = stakingAmount[msg.sender] + rewardPerMinute[msg.sender] * lockTimeInMinutes[msg.sender];
+        uint pullOut = stakingAmount[msg.sender] + rewardAmountPerMinute[msg.sender] * lockTimeInMinutes[msg.sender];
         stakingAmount[msg.sender] = 0;
         endTimeOfStaking[msg.sender] = 0;
-        rewardPerMinute[msg.sender] = 0;
+        rewardAmountPerMinute[msg.sender] = 0;
         lockTimeInMinutes[msg.sender] = 0;
         
         token.transfer(msg.sender, pullOut);

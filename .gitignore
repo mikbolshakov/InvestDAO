@@ -1,4 +1,5 @@
 blockchain/node_modules
+blockchain/.env
 
 server/node_modules
 server/.env

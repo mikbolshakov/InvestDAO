@@ -28,6 +28,7 @@
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.8.1",
     "moralis": "^2.11.0",
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "react-moralis": "^1.4.2"
   }
 }

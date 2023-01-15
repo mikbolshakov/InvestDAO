@@ -1,36 +1,33 @@
-// const {connectToMoralis} = require("./Prices/Moralis.js")
-// const {getCurrentEthPrice} = require("./Prices/priceEth.js")
-// const {getCurrentBtcPrice} = require("./Prices/priceWBtc.js")
+import {connectToMoralis} from "./Prices/Moralis.mjs"
+import {getCurrentEthPrice} from "./Prices/priceEth.mjs"
+import {getCurrentBtcPrice} from "./Prices/priceWBtc.mjs"
 import express from "express";
 import { validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
-import bcrypt from "bcrypt";
+// import mongoose from "mongoose";
 import { registerValidation } from "./validations.js";
 import { loginValidation } from "./validations.js";
 import User from "./User.js";
 import cors from "cors";
+import dotenv from 'dotenv'
+dotenv.config()
 
 const PORT = 3005;
 const app = express();
 app.use(express.json());
 app.use(cors())
 
-const DB ="mongodb+srv://admin13:admin13@cluster0.nt7f3aa.mongodb.net/?retryWrites=true&w=majority";
-mongoose
-  .connect(DB)
-  .then(() => console.log("DB ok"))
-  .catch((err) => console.log("DB error", err));
+// const DB =`mongodb+srv://admin13:${process.env.DB_PASSWORD}@cluster0.nt7f3aa.mongodb.net/?retryWrites=true&w=majority`;
+// mongoose
+//   .connect(DB)
+//   .then(() => console.log("DB ok"))
+//   .catch((err) => console.log("DB error", err));
 
-// app.get("/api", async (req, res) => {
-//   const ethPrice = await getCurrentEthPrice(); 
-//   const BtcPrice = await getCurrentBtcPrice(); 
-//   res.json({message: [BtcPrice, ethPrice]});
-// })
-
-app.get("/", (req, res) => {
-  res.send("это мы вернем клиенту");
-});
+app.get("/api", async (req, res) => {
+  const ethPrice = await getCurrentEthPrice(); 
+  const BtcPrice = await getCurrentBtcPrice(); 
+  res.json({message: [BtcPrice, ethPrice]});
+})
 
 app.post("/auth/register", registerValidation, async (req, res) => {
   try {
@@ -39,15 +36,10 @@ app.post("/auth/register", registerValidation, async (req, res) => {
       return res.status(400).json(errors.array());
     }
 
-    const password = req.body.password;
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(password, salt);
-
     const doc = new User({
       name: req.body.name,
       occupation: req.body.occupation,
       email: req.body.email,
-      password: hash,
     });
 
     const user = await doc.save();
@@ -55,7 +47,7 @@ app.post("/auth/register", registerValidation, async (req, res) => {
     const token = jwt.sign(
       { _id: user._id },
       "secretKey123", 
-      { expiresIn: "30d" } 
+      { expiresIn: "1d" } 
     );
 
     res.json({ ...user._doc, token });
@@ -72,22 +64,16 @@ app.post("/auth/login", loginValidation, async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
+      console.log("не зареган")
       return res.status(404).json({
         message: "Пользователь не найден",
-      });
-    }
-
-    const isValidPass = await bcrypt.compare(req.body.password, user._doc.password);
-    if (!isValidPass) {
-      return res.status(400).json({
-        message: "Неверный логин или пароль",
       });
     }
 
     const token = jwt.sign(
       { _id: user._id }, 
       "secretKey123", 
-      {expiresIn: "30d"}
+      {expiresIn: "1d"}
       );
 
     res.json({ ...user._doc, token });
@@ -141,7 +127,7 @@ app.get('/auth/all', async (req, res) => {
 
 async function startApp() {
     try {
-        // await connectToMoralis()
+        await connectToMoralis()
         app.listen(PORT, () => console.log("Server is working on port " + PORT));
     } catch (error) {
         console.log(error);
