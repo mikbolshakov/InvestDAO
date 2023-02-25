@@ -4,9 +4,11 @@ import { Magic } from "magic-sdk";
 import { ConnectExtension } from "@magic-ext/connect";
 import { ethers } from "ethers";
 import axios from "axios";
+import dotenv from 'dotenv'
+dotenv.config()
 
 const customNodeOptions = {
-  rpcUrl: `https://goerli.infura.io/v3/21fb68f7d77b487187658e349000c2e7`,
+  rpcUrl: `https://goerli.infura.io/v3/${process.env.RPCURL}`,
   chainId: 5,
 };
 
@@ -117,7 +119,7 @@ function App() {
     }
   };
 
-  // ФОРМА РЕГИСТРАЦИИИИИИИИИИИИИИИИИИИИИИИИИИ
+  // ФОРМА РЕГИСТРАЦИИ
 
   const [register, setRegister] = React.useState(() => {
     return {

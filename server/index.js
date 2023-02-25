@@ -4,7 +4,7 @@ import {getCurrentBtcPrice} from "./Prices/priceWBtc.mjs"
 import express from "express";
 import { validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
-// import mongoose from "mongoose";
+import mongoose from "mongoose";
 import { registerValidation } from "./validations.js";
 import { loginValidation } from "./validations.js";
 import User from "./User.js";
@@ -17,11 +17,11 @@ const app = express();
 app.use(express.json());
 app.use(cors())
 
-// const DB =`mongodb+srv://admin13:${process.env.DB_PASSWORD}@cluster0.nt7f3aa.mongodb.net/?retryWrites=true&w=majority`;
-// mongoose
-//   .connect(DB)
-//   .then(() => console.log("DB ok"))
-//   .catch((err) => console.log("DB error", err));
+const DB =`mongodb+srv://admin13:${process.env.DB_PASSWORD}@cluster0.nt7f3aa.mongodb.net/?retryWrites=true&w=majority`;
+mongoose
+  .connect(DB)
+  .then(() => console.log("DB ok"))
+  .catch((err) => console.log("DB error", err));
 
 app.get("/api", async (req, res) => {
   const ethPrice = await getCurrentEthPrice(); 
