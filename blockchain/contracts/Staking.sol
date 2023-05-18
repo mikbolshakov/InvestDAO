@@ -20,29 +20,47 @@ contract Staking {
         token = _token;
     }
 
-    function putInStaking(uint _amount, uint _lockTimeInMinutes) public payable {
+    function putInStaking(
+        uint _amount,
+        uint _lockTimeInMinutes
+    ) public payable {
         require(stakingAmount[msg.sender] == 0, "already in staking");
 
         stakingAmount[msg.sender] = _amount;
         lockTimeInMinutes[msg.sender] = _lockTimeInMinutes;
 
-        endTimeOfStaking[msg.sender] = block.timestamp + _lockTimeInMinutes * 60;
-        rewardAmountPerMinute[msg.sender] = _amount * rewardRatePerMinute / 100;
+        endTimeOfStaking[msg.sender] =
+            block.timestamp +
+            _lockTimeInMinutes *
+            60;
+        rewardAmountPerMinute[msg.sender] =
+            (_amount * rewardRatePerMinute) /
+            100;
 
         token.transferFrom(msg.sender, address(this), _amount); // need approve
 
-        emit NewDepositor(msg.sender, _amount, block.timestamp, lockTimeInMinutes[msg.sender]);
+        emit NewDepositor(
+            msg.sender,
+            _amount,
+            block.timestamp,
+            lockTimeInMinutes[msg.sender]
+        );
     }
 
     function pullOutOfStaking() public {
-        require(block.timestamp >= endTimeOfStaking[msg.sender], "Staking time is not over");
+        require(
+            block.timestamp >= endTimeOfStaking[msg.sender],
+            "Staking time is not over"
+        );
 
-        uint pullOut = stakingAmount[msg.sender] + rewardAmountPerMinute[msg.sender] * lockTimeInMinutes[msg.sender];
+        uint pullOut = stakingAmount[msg.sender] +
+            rewardAmountPerMinute[msg.sender] *
+            lockTimeInMinutes[msg.sender];
         stakingAmount[msg.sender] = 0;
         endTimeOfStaking[msg.sender] = 0;
         rewardAmountPerMinute[msg.sender] = 0;
         lockTimeInMinutes[msg.sender] = 0;
-        
+
         token.transfer(msg.sender, pullOut);
     }
 

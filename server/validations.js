@@ -1,10 +1,8 @@
 import { body } from "express-validator";
 
-export const loginValidation = [
-  body("email", "Неверный формат почты").isEmail(),
-];
+export const loginValidation = [body("email", "Invalid mail format").isEmail()];
 
 export const registerValidation = [
-  body("email", "Неверный формат почты").isEmail(),
-  body("name", "Укажите имя").isLength({ min: 3 }),
+  body("email", "Invalid mail format").isEmail(),
+  body("name", "Enter a name").isLength({ min: 3 }),
 ];

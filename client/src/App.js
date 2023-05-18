@@ -4,8 +4,8 @@ import { Magic } from "magic-sdk";
 import { ConnectExtension } from "@magic-ext/connect";
 import { ethers } from "ethers";
 import axios from "axios";
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 
 const customNodeOptions = {
   rpcUrl: `https://goerli.infura.io/v3/${process.env.RPCURL}`,
@@ -37,7 +37,7 @@ function App() {
       } catch (error) {
         console.error(error.message);
       }
-    }
+    };
     btcPrice();
   }, []);
 
@@ -92,7 +92,7 @@ function App() {
   const takeWallet = () => {
     const provider = new ethers.providers.Web3Provider(magic.rpcProvider);
     provider.listAccounts().then((accounts) => {
-      setAccount(accounts?.[0])
+      setAccount(accounts?.[0]);
     });
   };
 
@@ -119,8 +119,7 @@ function App() {
     }
   };
 
-  // ФОРМА РЕГИСТРАЦИИ
-
+  // REGISTRATION FORM
   const [register, setRegister] = React.useState(() => {
     return {
       name: "",
@@ -175,9 +174,7 @@ function App() {
           <a href="https://goerlifaucet.com/" target="_blank" rel="noreferrer">
             Get some Ether
           </a>
-          {!account && (
-            <button onClick={takeWallet}>Get wallet</button>
-          )}
+          {!account && <button onClick={takeWallet}>Get wallet</button>}
           {account && (
             <>
               <button onClick={showWallet}>Show Wallet!</button>
